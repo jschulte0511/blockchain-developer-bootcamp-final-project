@@ -11,6 +11,17 @@ contract("BurialStokvelAccount", accounts => {
   });
 
   describe("Setting up the stokvel", async () => {
+    it("...the owners should be account 1 and 2.", async () => {
+
+      // Get contibution value
+      const account1 = await burialStokvelAccountInstance.owners(0);
+      const account2 = await burialStokvelAccountInstance.owners(1);
+
+      assert.equal(account1, accounts[0], "The value for account1 was not stored.");
+      assert.equal(account2, accounts[1], "The value account2 was not stored.");
+
+    });
+
     it("...the contibution should be 10.", async () => {
 
       // Get contibution value
