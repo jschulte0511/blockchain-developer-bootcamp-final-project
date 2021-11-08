@@ -38,4 +38,52 @@ contract("BurialStokvelAccount", accounts => {
       assert.equal(required, 2, "The value 2 for owners was not stored.");
     });
   });
+
+  describe("Enrolling in stokvel", async () => {
+    it("...account 3 should be enrolled with balance equal to contrribution", async () => {
+
+      //const contribution = web3.utils.toBN(2);
+      const contribution = 2;
+
+      await burialStokvelAccountInstance.enroll({ from: accounts[2], value: contribution });
+      const enrolled = await burialStokvelAccountInstance.isMember(accounts[2]);
+
+      assert.equal(enrolled, true, "The account 2 was not enrolled");
+
+      const balance = await burialStokvelAccountInstance.balance.call();
+
+      assert.equal(balance, 2, "The balance should be 2");
+
+    });
+  });
+
+  describe("Submitting request to stokvel", async () => {
+    it("...first transaction ID should be zero", async () => {
+
+      const result = await burialStokvelAccountInstance.submitRequest(1, { from: accounts[2] });
+
+      const expectedEventResult = { transactionId: 0 };
+
+      const logID = result.logs[0].args.transactionId;
+
+      assert.equal(expectedEventResult.transactionId, logID, "The transaction ID should be 0");
+
+    });
+
+    it("...second transaction ID should be 1", async () => {
+
+      const result = await burialStokvelAccountInstance.submitRequest(1, { from: accounts[2] });
+
+      const expectedEventResult = { transactionId: 1 };
+
+      const logID = result.logs[0].args.transactionId;
+
+      assert.equal(expectedEventResult.transactionId, logID, "The transaction ID should be 0");
+
+    });
+  });
+
+
+
 });
+

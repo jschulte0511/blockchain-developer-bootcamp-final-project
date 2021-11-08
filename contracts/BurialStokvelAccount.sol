@@ -59,6 +59,7 @@ contract BurialStokvelAccount {
         uint256 _contribution
     ) public validRequirement(_owners.length, _required) {
         require(_contribution > 0);
+        require(_owners.length >= _required);
         for (uint256 i = 0; i < _owners.length; i++) {
             isOwner[_owners[i]] = true;
         }
@@ -94,13 +95,10 @@ contract BurialStokvelAccount {
 
     /// @dev Allows an owner to confirm a transaction.
     /// @param value Amount requested.
-    function submitRequest(uint256 value)
-        public
-        returns (uint256 transactionId)
-    {
+    function submitRequest(uint256 value) public returns (uint256) {
         require(isMember[msg.sender]);
-        transactionId = addTransaction(msg.sender, value);
-        confirmTransaction(transactionId);
+        uint256 transactionId = addTransaction(msg.sender, value);
+        return transactionId;
     }
 
     /// @dev Adds a new transaction to the transaction mapping, if transaction does not exist yet.
