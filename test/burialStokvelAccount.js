@@ -83,7 +83,20 @@ contract("BurialStokvelAccount", accounts => {
     });
   });
 
+  describe("Confirming transaction in stokvel", async () => {
+    it("...first transaction ID should be zero", async () => {
 
+      const result = await burialStokvelAccountInstance.confirmTransaction(1, { from: accounts[0] });
 
-});
+      const expectedEventResult = { address: accounts[0], transactionId: 0 };
+
+      const logID = result.logs[0].args.transactionId;
+      const logAddress = result.logs[0].args.accountAddress;
+
+      assert.equal(expectedEventResult.transactionId, logID, "The transaction ID should be 0");
+      assert.equal(expectedEventResult.address, logAddress, "The address should be " + accounts[2]);
+
+    });
+
+  });
 
