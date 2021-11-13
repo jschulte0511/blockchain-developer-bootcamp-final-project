@@ -1,4 +1,5 @@
 const BurialStokvelAccount = artifacts.require("./BurialStokvelAccount.sol");
+let BN = web3.utils.BN;
 
 contract("BurialStokvelAccount", accounts => {
 
@@ -60,7 +61,7 @@ contract("BurialStokvelAccount", accounts => {
   describe("Submitting request to stokvel", async () => {
     it("...first transaction ID should be zero", async () => {
 
-      const result = await burialStokvelAccountInstance.submitRequest(1, { from: accounts[2] });
+      const result = await burialStokvelAccountInstance.submitRequest(1, "Account 1", { from: accounts[2] });
 
       const expectedEventResult = { transactionId: 0 };
 
@@ -72,31 +73,68 @@ contract("BurialStokvelAccount", accounts => {
 
     it("...second transaction ID should be 1", async () => {
 
-      const result = await burialStokvelAccountInstance.submitRequest(1, { from: accounts[2] });
+      const result = await burialStokvelAccountInstance.submitRequest(1, "Account 2", { from: accounts[2] });
 
       const expectedEventResult = { transactionId: 1 };
 
       const logID = result.logs[0].args.transactionId;
 
-      assert.equal(expectedEventResult.transactionId, logID, "The transaction ID should be 0");
+      assert.equal(expectedEventResult.transactionId, logID, "The transaction ID should be 1");
 
     });
   });
 
-  describe("Confirming transaction in stokvel", async () => {
-    it("...first transaction ID should be zero", async () => {
+  describe("Confirming pending transaction in stokvel using account 0", async () => {
+    it("...first transaction ID should be zero and the name Account 1", async () => {
 
-      const result = await burialStokvelAccountInstance.confirmTransaction(1, { from: accounts[0] });
+      const result = await burialStokvelAccountInstance.confirmTransaction(0, { from: accounts[0] });
 
       const expectedEventResult = { address: accounts[0], transactionId: 0 };
 
       const logID = result.logs[0].args.transactionId;
-      const logAddress = result.logs[0].args.accountAddress;
+      const logSender = result.logs[0].args.sender;
 
       assert.equal(expectedEventResult.transactionId, logID, "The transaction ID should be 0");
-      assert.equal(expectedEventResult.address, logAddress, "The address should be " + accounts[2]);
+      assert.equal(expectedEventResult.address, logSender, "The address should be " + accounts[0]);
+
+      const { name, value, destination } = await burialStokvelAccountInstance.fetchTransaction(logID);
+
+      assert.equal(name, "Account 1", "The transaction name should be Account 1");
 
     });
 
   });
 
+  describe("Executing pending transaction in stokvel using account 1", async () => {
+    it("...balance of account 2 should have increased by 1", async () => {
+
+      const balanceBeforeExecution = await web3.eth.getBalance(accounts[2]);
+      let result = await burialStokvelAccountInstance.confirmTransaction(0, { from: accounts[1] });
+
+      // emit Confirmation(msg.sender, _transactionId);
+      const expectedEventResult = { address: accounts[1], transactionId: 0 };
+
+      const logID = result.logs[0].args.transactionId;
+      const logSender = result.logs[0].args.sender;
+
+      assert.equal(expectedEventResult.transactionId, logID, "The transaction ID should be 0 for Confirmation");
+      assert.equal(expectedEventResult.address, logSender, "The address should be " + accounts[1]);
+
+      // emit Execution(_transactionId);
+      const executionLogID = result.logs[0].args.transactionId;
+      assert.equal(expectedEventResult.transactionId, executionLogID, "The transaction ID should be 0 for Execution");
+
+      var balanceAfterExecution = await web3.eth.getBalance(accounts[2]);
+      assert.equal(new BN(balanceAfterExecution).toString(),
+        new BN(balanceBeforeExecution).add(new BN(1)).toString(),
+        "The balance after execution should be greater by 1");
+
+      result = await burialStokvelAccountInstance.fetchTransaction(0);
+
+      assert.equal(result[3],
+        BurialStokvelAccount.State.Executed,
+        "The transaction should have state executed");
+
+    });
+  });
+});

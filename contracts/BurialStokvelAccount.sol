@@ -19,15 +19,23 @@ contract BurialStokvelAccount {
     mapping(address => bool) public isMember;
 
     uint256 public transactionCount;
-    uint256[] private pendingTransactionIDs;
+    uint256[] private transactionIDs;
     mapping(uint256 => Transaction) public transactions;
 
     mapping(uint256 => mapping(address => bool)) public confirmations;
 
+    // <enum State: Executed, Pending, Cancelled>
+    enum State {
+        Executed,
+        Pending,
+        Cancelled
+    }
+
     struct Transaction {
+        string name;
         address destination;
         uint256 value;
-        bool executed;
+        State state;
     }
 
     uint256 public balance;
@@ -39,7 +47,6 @@ contract BurialStokvelAccount {
     event Execution(uint256 indexed transactionId);
     event ExecutionFailure(uint256 indexed transactionId);
     event LogEnrolled(address accountAddress);
-
     event Deposit(address indexed sender, uint256 value);
 
     /// @dev Fallback function allows to deposit ether.
@@ -68,8 +75,8 @@ contract BurialStokvelAccount {
         contribution = _contribution;
     }
 
-    modifier validRequirement(uint256 ownerCount, uint256 _required) {
-        if (_required > ownerCount || _required == 0 || ownerCount == 0)
+    modifier validRequirement(uint256 _ownerCount, uint256 _required) {
+        if (_required > _ownerCount || _required == 0 || _ownerCount == 0)
             revert();
         _;
     }
@@ -93,90 +100,109 @@ contract BurialStokvelAccount {
         return isMember[msg.sender];
     }
 
-    /// @dev Allows an owner to confirm a transaction.
-    /// @param value Amount requested.
-    function submitRequest(uint256 value) public returns (uint256) {
+    /// @dev Allows a member to submit a transaction request.
+    /// @param _value Amount requested.
+    function submitRequest(uint256 _value, string memory _name)
+        public
+        returns (uint256)
+    {
         require(isMember[msg.sender]);
-        uint256 transactionId = addTransaction(msg.sender, value);
+        uint256 transactionId = addTransaction(msg.sender, _value, _name);
         return transactionId;
     }
 
     /// @dev Adds a new transaction to the transaction mapping, if transaction does not exist yet.
-    /// @param destination Transaction target address.
-    /// @param value Transaction ether value.
+    /// @param _destination Transaction target address.
+    /// @param _value Transaction ether value.
     /// @return Returns transaction ID.
-    function addTransaction(address destination, uint256 value)
-        internal
-        returns (uint256 transactionId)
-    {
+    function addTransaction(
+        address _destination,
+        uint256 _value,
+        string memory _name
+    ) internal returns (uint256 transactionId) {
         transactionId = transactionCount;
         transactions[transactionId] = Transaction({
-            destination: destination,
-            value: value,
-            executed: false
+            name: _name,
+            destination: _destination,
+            value: _value,
+            state: State.Pending
         });
+        transactionIDs.push(transactionId);
         transactionCount += 1;
         emit Submission(transactionId);
     }
 
     /// @dev Allows an owner to confirm a transaction.
-    /// @param transactionId Transaction ID.
-    function confirmTransaction(uint256 transactionId) public {
+    /// @param _transactionId Transaction ID.
+    function confirmTransaction(uint256 _transactionId) public {
         require(isOwner[msg.sender]);
-        require(transactions[transactionId].destination != address(0));
-        require(confirmations[transactionId][msg.sender] == false);
-        confirmations[transactionId][msg.sender] = true;
-        emit Confirmation(msg.sender, transactionId);
-        executeTransaction(transactionId);
+        require(transactions[_transactionId].destination != address(0));
+        require(confirmations[_transactionId][msg.sender] == false);
+        confirmations[_transactionId][msg.sender] = true;
+        emit Confirmation(msg.sender, _transactionId);
+        executeTransaction(_transactionId);
     }
 
     /// @dev Returns the confirmation status of a transaction.
-    /// @param transactionId Transaction ID.
+    /// @param _transactionId Transaction ID.
     /// @return Confirmation status.
-    function isConfirmed(uint256 transactionId) public view returns (bool) {
+    function isConfirmed(uint256 _transactionId) public view returns (bool) {
         uint256 count = 0;
         for (uint256 i = 0; i < owners.length; i++) {
-            if (confirmations[transactionId][owners[i]]) count += 1;
+            if (confirmations[_transactionId][owners[i]]) count += 1;
             if (count == required) return true;
         }
     }
 
     /// @dev Transaction is executed if enough confirmations have been
     /// received and the balance is not sufficient.
-    /// @param transactionId Transaction ID.
-    function executeTransaction(uint256 transactionId) internal {
-        require(transactions[transactionId].executed == false);
+    /// @param _transactionId Transaction ID.
+    function executeTransaction(uint256 _transactionId) internal {
+        require(transactions[_transactionId].state == State.Pending);
         // Check balance
-        if (isConfirmed(transactionId)) {
-            Transaction storage t = transactions[transactionId]; // using the "storage" keyword makes "t" a pointer to storage
-            t.executed = true;
+        if (isConfirmed(_transactionId)) {
+            Transaction storage t = transactions[_transactionId]; // using the "storage" keyword makes "t" a pointer to storage
+            t.state = State.Executed;
             (bool success, ) = t.destination.call.value(t.value)("");
-            removePendingTransactionID(transactionId);
-            if (success) emit Execution(transactionId);
+
+            if (success) emit Execution(_transactionId);
             else {
-                emit ExecutionFailure(transactionId);
-                t.executed = false;
-                pendingTransactionIDs.push(transactionId);
+                emit ExecutionFailure(_transactionId);
+                t.state = State.Pending;
+
                 require(success, "Failed to send money");
             }
         }
     }
 
-    function removePendingTransactionID(uint256 _index) internal {
-        require(_index < pendingTransactionIDs.length, "index out of bound");
-
-        for (uint256 i = _index; i < pendingTransactionIDs.length - 1; i++) {
-            pendingTransactionIDs[i] = pendingTransactionIDs[i + 1];
+    function removePendingTransactionID(uint256 _transactionId) internal {
+        for (uint256 i = 0; i < transactionIDs.length - 1; i++) {
+            transactionIDs[i] = transactionIDs[i + 1];
         }
-        pendingTransactionIDs.pop();
+        transactionIDs.pop();
     }
 
-    function getAllPendingTransactionIDs()
+    function getAllTransactionIDs() public view returns (uint256[] memory) {
+        // Only three pending transactions allowed
+        return transactionIDs;
+    }
+
+    //
+    function fetchTransaction(uint256 _transactionId)
         public
         view
-        returns (uint256[] memory)
+        returns (
+            string memory name,
+            uint256 value,
+            address destination,
+            State state
+        )
     {
-        // Only three pending transactions allowed
-        return pendingTransactionIDs;
+        name = transactions[_transactionId].name;
+        value = transactions[_transactionId].value;
+        destination = transactions[_transactionId].destination;
+        state = transactions[_transactionId].state;
+
+        return (name, value, destination, state);
     }
 }
