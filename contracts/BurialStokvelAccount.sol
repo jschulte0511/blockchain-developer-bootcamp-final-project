@@ -13,7 +13,10 @@ contract BurialStokvelAccount {
     }
 
     address[] public owners;
+    address[] public members;
     uint256 public required;
+    uint256 public balance;
+    uint256 public contribution;
 
     mapping(address => bool) public isOwner;
     mapping(address => bool) public isMember;
@@ -37,9 +40,6 @@ contract BurialStokvelAccount {
         uint256 value;
         State state;
     }
-
-    uint256 public balance;
-    uint256 public contribution;
 
     //Events
     event Submission(uint256 indexed transactionId);
@@ -94,6 +94,7 @@ contract BurialStokvelAccount {
     {
         require(isMember[msg.sender] == false);
         isMember[msg.sender] = true;
+        members.push(msg.sender);
         emit LogEnrolled(msg.sender);
         balance += msg.value;
         emit Deposit(msg.sender, msg.value);
@@ -204,5 +205,17 @@ contract BurialStokvelAccount {
         state = transactions[_transactionId].state;
 
         return (name, value, destination, state);
+    }
+
+    function getOwners() public view returns (address[] memory) {
+        return owners;
+    }
+
+    function getBalance() public view returns (uint256) {
+        return balance;
+    }
+
+    function getMembers() public view returns (address[] memory) {
+        return members;
     }
 }
