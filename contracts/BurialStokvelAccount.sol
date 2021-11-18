@@ -30,8 +30,7 @@ contract BurialStokvelAccount {
     // <enum State: Executed, Pending, Cancelled>
     enum State {
         Executed,
-        Pending,
-        Cancelled
+        Pending
     }
 
     struct Transaction {
@@ -108,6 +107,7 @@ contract BurialStokvelAccount {
         returns (uint256)
     {
         require(isMember[msg.sender]);
+        require(_value <= balance);
         uint256 transactionId = addTransaction(msg.sender, _value, _name);
         return transactionId;
     }
@@ -161,26 +161,21 @@ contract BurialStokvelAccount {
     function executeTransaction(uint256 _transactionId) internal {
         require(transactions[_transactionId].state == State.Pending);
         // Check balance
+        require(transactions[_transactionId].value <= balance);
         if (isConfirmed(_transactionId)) {
             Transaction storage t = transactions[_transactionId]; // using the "storage" keyword makes "t" a pointer to storage
             t.state = State.Executed;
+            balance = balance - transactions[_transactionId].value;
             (bool success, ) = t.destination.call.value(t.value)("");
 
             if (success) emit Execution(_transactionId);
             else {
                 emit ExecutionFailure(_transactionId);
                 t.state = State.Pending;
-
+                balance = balance + transactions[_transactionId].value;
                 require(success, "Failed to send money");
             }
         }
-    }
-
-    function removePendingTransactionID(uint256 _transactionId) internal {
-        for (uint256 i = 0; i < transactionIDs.length - 1; i++) {
-            transactionIDs[i] = transactionIDs[i + 1];
-        }
-        transactionIDs.pop();
     }
 
     function getAllTransactionIDs() public view returns (uint256[] memory) {
@@ -196,13 +191,19 @@ contract BurialStokvelAccount {
             string memory name,
             uint256 value,
             address destination,
-            State state
+            string memory state
         )
     {
         name = transactions[_transactionId].name;
         value = transactions[_transactionId].value;
         destination = transactions[_transactionId].destination;
-        state = transactions[_transactionId].state;
+        if (transactions[_transactionId].state == State.Executed) {
+            state = "Executed";
+        } else if (transactions[_transactionId].state == State.Pending) {
+            state = "Pending";
+        } else {
+            state = "";
+        }
 
         return (name, value, destination, state);
     }

@@ -5,7 +5,7 @@ import getWeb3 from "./getWeb3";
 import "./App.css";
 
 class App extends Component {
-  state = { storageValue: 0, web3: null, accounts: null, contract: null, owners: null, members: null, balance: 0 };
+  state = { storageValue: 0, web3: null, accounts: null, contract: null, owners: null, members: null, balance: 0, transactions: null };
 
   componentDidMount = async () => {
     try {
@@ -39,7 +39,7 @@ class App extends Component {
   };
 
   runExample = async () => {
-    const { storageValue, accounts, contract } = this.state;
+    const { storageValue, contract } = this.state;
 
     console.log("Value is...", storageValue);
 
@@ -67,8 +67,34 @@ class App extends Component {
     }
     console.log("Balance is ...", this.state.balance);
 
-
+    this.loadTransactions();
   };
+
+  loadTransactions = async () => {
+
+    const { contract } = this.state;
+
+    // Get the value from the contract to prove it worked.
+    const transactionIds = await contract.methods.getAllTransactionIDs().call();
+
+    let transactions = [];
+
+    for (let i = 0; i < transactionIds.length; i++) {
+
+      const transaction = await contract.methods.fetchTransaction(transactionIds[i]).call();
+
+      transactions[i] = { name: transaction.name, destination: transaction.destination, value: transaction.value, state: transaction.state };
+      console.log('Loaded transactions: ', transaction.state);
+    }
+
+
+    this.setState({ transactions: transactions });
+    //if (err) console.error('An error occured', err);
+
+    console.log('Loaded transactions: ', transactions.length);
+
+
+  }
 
   querySecret = async () => {
 
@@ -78,7 +104,6 @@ class App extends Component {
     const response = await contract.methods.get().call();
 
     this.setState({ storageValue: response });
-    //if (err) console.error('An error occured', err);
 
     console.log('This is our stored data: ', response);
 
@@ -99,7 +124,7 @@ class App extends Component {
 
   enroll = async () => {
 
-    const { storageValue, accounts, contract } = this.state;
+    const { accounts, contract } = this.state;
 
     const ssInputValue = document.getElementById('ss-contribution-input-box').value;
     console.log('Contribution for enrollment (min 2): ', ssInputValue);
@@ -109,6 +134,36 @@ class App extends Component {
     const members = await contract.methods.getMembers().call();
     this.setState({ members: members });
 
+    this.runExample();
+
+  }
+
+  submitRequest = async () => {
+
+    const { accounts, contract } = this.state;
+
+    const ssInputValue = document.getElementById('ss-request-input-box').value;
+    console.log('Requested amount: ', ssInputValue);
+
+    // Submit Request
+    await contract.methods.submitRequest(ssInputValue, "Name").send({ from: accounts[0] });
+
+    // Reloading
+    this.runExample();
+  }
+
+  approveRequest = async () => {
+
+    const { accounts, contract } = this.state;
+
+    const ssInputValue = document.getElementById('ss-approve-input-box').value;
+    console.log('Approved ID: ', ssInputValue);
+
+    // Submit Approval
+    await contract.methods.confirmTransaction(ssInputValue).send({ from: accounts[0] });
+
+    // Reloading 
+    this.runExample();
   }
 
   render() {
@@ -120,6 +175,9 @@ class App extends Component {
     let membersLoaded = false;
     let membersList = null;
 
+    let transactionsLoaded = false;
+    let transactionsList = null;
+
     const members = this.state.members;
     if (members != null) {
       membersLoaded = true;
@@ -128,27 +186,63 @@ class App extends Component {
       })
     }
 
+    const transactions = this.state.transactions;
+
+    if (transactions != null) {
+      console.log("Length: ", transactions.length);
+      transactionsLoaded = true;
+      transactionsList = transactions.map(function (anObjectMapped, index) {
+        return <tr key={index}><td>{index}</td><td>{anObjectMapped.name}</td><td>{anObjectMapped.destination}</td><td>{anObjectMapped.value}</td><td>{anObjectMapped.state}</td></tr>;
+      })
+    }
+
+
 
     return (
-      <div className="App" >
+      <div className="App">
         <h1>Burial Stokvel Account</h1>
         <p></p>
         <h2>Smart Contract Example</h2>
         <br />
         <br />
-
         <h3>Owners</h3>
-        <div>Owner 1: {ownersLoaded ? this.state.owners[0] : ""} </div>
-        <div>Owner 2: {ownersLoaded ? this.state.owners[1] : ""} </div>
+        <div>Owner 1: {ownersLoaded ? this.state.owners[0] : null} </div>
+        <div>Owner 2: {ownersLoaded ? this.state.owners[1] : null} </div>
         <br />
         <h3>Members</h3>
-        {membersLoaded ? membersList : ""}
+        {membersLoaded ? membersList : null}
+        <br />
+        <h3>Transactions</h3>
+        <table style={{ "marginLeft": "auto", "marginRight": "auto" }}>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Destination</th>
+              <th>Value</th>
+              <th>State</th>
+            </tr>
+          </thead>
+          <tbody>{transactionsLoaded ? transactionsList : null}</tbody>
+        </table>
         <br />
         <div>Balance is {this.state.balance}</div>
         <br />
         <div>
           <input id="ss-contribution-input-box" type="number" placeholder="Contribution amount" />
           <button onClick={this.enroll} id="ss-contr-input-button">Enroll</button>
+        </div>
+        <br />
+        <br />
+        <div>
+          <input id="ss-request-input-box" type="number" placeholder="Requested amount" />
+          <button onClick={this.submitRequest} id="ss-request-input-button">Submit</button>
+        </div>
+        <br />
+        <br />
+        <div>
+          <input id="ss-approve-input-box" type="number" placeholder="Transaction ID" />
+          <button onClick={this.approveRequest} id="ss-approve-input-button">Approve</button>
         </div>
         <br />
         <div>The stored value is: {this.state.storageValue}</div>
@@ -160,7 +254,7 @@ class App extends Component {
           <input id="ss-input-box" type="number" placeholder="Provide input" />
           <button onClick={this.setSecret} id="ss-input-button">Submit Value</button>
         </div>
-      </div>
+      </div >
     );
   }
 }

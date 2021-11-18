@@ -109,6 +109,7 @@ contract("BurialStokvelAccount", accounts => {
     it("...balance of account 2 should have increased by 1", async () => {
 
       const balanceBeforeExecution = await web3.eth.getBalance(accounts[2]);
+      const initialBalanceOfStokvel = await burialStokvelAccountInstance.balance.call();
       let result = await burialStokvelAccountInstance.confirmTransaction(0, { from: accounts[1] });
 
       // emit Confirmation(msg.sender, _transactionId);
@@ -132,8 +133,13 @@ contract("BurialStokvelAccount", accounts => {
       result = await burialStokvelAccountInstance.fetchTransaction(0);
 
       assert.equal(result[3],
-        BurialStokvelAccount.State.Executed,
+        "Executed",
         "The transaction should have state executed");
+
+      const endBalanceOfStokvel = await burialStokvelAccountInstance.balance.call();
+
+      assert.equal(new BN(initialBalanceOfStokvel).toString(), new BN(endBalanceOfStokvel).add(new BN(1)).toString(), "The balance of the stokvel should be 1");
+
 
     });
   });
