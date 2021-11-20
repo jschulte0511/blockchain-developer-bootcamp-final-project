@@ -2,16 +2,6 @@
 pragma solidity >=0.4.22 <0.9.0;
 
 contract BurialStokvelAccount {
-    uint256 public storedData = 0;
-
-    function set(uint256 x) public {
-        storedData = x;
-    }
-
-    function get() public view returns (uint256) {
-        return storedData;
-    }
-
     address[] public owners;
     address[] public members;
     uint256 public required;
@@ -43,10 +33,14 @@ contract BurialStokvelAccount {
 
     //Events
     event Submission(uint256 indexed transactionId);
-    event Confirmation(address indexed sender, uint256 indexed transactionId);
+    event Confirmation(
+        address indexed sender,
+        uint256 indexed transactionId,
+        string approved
+    );
     event Execution(uint256 indexed transactionId);
     event ExecutionFailure(uint256 indexed transactionId);
-    event LogEnrolled(address accountAddress);
+    event LogEnrolled(address indexed accountAddress);
     event Deposit(address indexed sender, uint256 value);
 
     /// @dev Fallback function allows to deposit ether.
@@ -140,9 +134,15 @@ contract BurialStokvelAccount {
         require(isOwner[msg.sender]);
         require(transactions[_transactionId].destination != address(0));
         require(confirmations[_transactionId][msg.sender] == false);
+
         confirmations[_transactionId][msg.sender] = true;
-        transactions[_transactionId].state == State.Approved;
-        emit Confirmation(msg.sender, _transactionId);
+        string memory approved = "false";
+        if (isConfirmed(_transactionId)) {
+            transactions[_transactionId].state = State.Approved;
+            approved = "true";
+        }
+
+        emit Confirmation(msg.sender, _transactionId, approved);
     }
 
     /// @dev Returns the confirmation status of a transaction.
@@ -156,11 +156,16 @@ contract BurialStokvelAccount {
         }
     }
 
+    function withdraw(uint256 _transactionId) public {
+        require(transactions[_transactionId].destination == msg.sender);
+        executeTransaction(_transactionId);
+    }
+
     /// @dev Transaction is executed if enough confirmations have been
     /// received and the balance is sufficient.
     /// @param _transactionId Transaction ID.
     function executeTransaction(uint256 _transactionId) internal {
-        // require(transactions[_transactionId].state == State.Approved);
+        require(transactions[_transactionId].state == State.Approved);
         // Check balance
         require(transactions[_transactionId].value <= balance);
         if (isConfirmed(_transactionId)) {
@@ -215,16 +220,19 @@ contract BurialStokvelAccount {
         return owners;
     }
 
+    function getMinimumContribution() public view returns (uint256) {
+        return contribution;
+    }
+
+    function getNumberofRequiredApprovals() public view returns (uint256) {
+        return required;
+    }
+
     function getBalance() public view returns (uint256) {
         return balance;
     }
 
     function getMembers() public view returns (address[] memory) {
         return members;
-    }
-
-    function withdraw(uint256 _transactionId) public {
-        require(transactions[_transactionId].destination == msg.sender);
-        executeTransaction(_transactionId);
     }
 }

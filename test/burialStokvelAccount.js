@@ -89,13 +89,15 @@ contract("BurialStokvelAccount", accounts => {
 
       const result = await burialStokvelAccountInstance.confirmTransaction(0, { from: accounts[0] });
 
-      const expectedEventResult = { address: accounts[0], transactionId: 0 };
+      const expectedEventResult = { address: accounts[0], transactionId: 0, approved: "false" };
 
       const logID = result.logs[0].args.transactionId;
       const logSender = result.logs[0].args.sender;
+      const logApproved = result.logs[0].args.approved;
 
       assert.equal(expectedEventResult.transactionId, logID, "The transaction ID should be 0");
       assert.equal(expectedEventResult.address, logSender, "The address should be " + accounts[0]);
+      assert.equal(expectedEventResult.approved, logApproved, "The value of approved should be false");
 
       const { name, value, destination } = await burialStokvelAccountInstance.fetchTransaction(logID);
 
@@ -104,18 +106,20 @@ contract("BurialStokvelAccount", accounts => {
     });
 
 
-    it("...using account 2", async () => {
+    it("...using account 1", async () => {
 
       let result = await burialStokvelAccountInstance.confirmTransaction(0, { from: accounts[1] });
 
       // emit Confirmation(msg.sender, _transactionId);
-      const expectedEventResult = { address: accounts[1], transactionId: 0 };
+      const expectedEventResult = { address: accounts[1], transactionId: 0, approved: "true" };
 
       const logID = result.logs[0].args.transactionId;
       const logSender = result.logs[0].args.sender;
+      const logApproved = result.logs[0].args.approved;
 
       assert.equal(expectedEventResult.transactionId, logID, "The transaction ID should be 0 for Confirmation");
       assert.equal(expectedEventResult.address, logSender, "The address should be " + accounts[1]);
+      assert.equal(expectedEventResult.approved, logApproved, "The value of approved should be true");
 
     });
   });
