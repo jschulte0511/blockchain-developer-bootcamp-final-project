@@ -30,7 +30,8 @@ contract BurialStokvelAccount {
     // <enum State: Executed, Pending, Cancelled>
     enum State {
         Executed,
-        Pending
+        Pending,
+        Approved
     }
 
     struct Transaction {
@@ -140,8 +141,8 @@ contract BurialStokvelAccount {
         require(transactions[_transactionId].destination != address(0));
         require(confirmations[_transactionId][msg.sender] == false);
         confirmations[_transactionId][msg.sender] = true;
+        transactions[_transactionId].state == State.Approved;
         emit Confirmation(msg.sender, _transactionId);
-        executeTransaction(_transactionId);
     }
 
     /// @dev Returns the confirmation status of a transaction.
@@ -156,10 +157,10 @@ contract BurialStokvelAccount {
     }
 
     /// @dev Transaction is executed if enough confirmations have been
-    /// received and the balance is not sufficient.
+    /// received and the balance is sufficient.
     /// @param _transactionId Transaction ID.
     function executeTransaction(uint256 _transactionId) internal {
-        require(transactions[_transactionId].state == State.Pending);
+        // require(transactions[_transactionId].state == State.Approved);
         // Check balance
         require(transactions[_transactionId].value <= balance);
         if (isConfirmed(_transactionId)) {
@@ -171,7 +172,7 @@ contract BurialStokvelAccount {
             if (success) emit Execution(_transactionId);
             else {
                 emit ExecutionFailure(_transactionId);
-                t.state = State.Pending;
+                t.state = State.Approved;
                 balance = balance + transactions[_transactionId].value;
                 require(success, "Failed to send money");
             }
@@ -201,6 +202,8 @@ contract BurialStokvelAccount {
             state = "Executed";
         } else if (transactions[_transactionId].state == State.Pending) {
             state = "Pending";
+        } else if (transactions[_transactionId].state == State.Approved) {
+            state = "Approved";
         } else {
             state = "";
         }
@@ -218,5 +221,10 @@ contract BurialStokvelAccount {
 
     function getMembers() public view returns (address[] memory) {
         return members;
+    }
+
+    function withdraw(uint256 _transactionId) public {
+        require(transactions[_transactionId].destination == msg.sender);
+        executeTransaction(_transactionId);
     }
 }
