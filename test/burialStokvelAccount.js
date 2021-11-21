@@ -23,12 +23,12 @@ contract("BurialStokvelAccount", accounts => {
 
     });
 
-    it("...the contibution should be 10.", async () => {
+    it("...the contibution should be 2.", async () => {
 
       // Get contibution value
       const contribution = await burialStokvelAccountInstance.contribution.call();
 
-      assert.equal(contribution, 10, "The value 10 for contribution was not stored.");
+      assert.equal(contribution, 2, "The value 2 for contribution was not stored.");
     });
 
     it("...the number of required confirmations should be 2.", async () => {

@@ -11,3 +11,7 @@ For this project, I will provide a platform that allows the creation of a smart 
 4. Value of payout relative to funds available
 
 Further use cases will cover what happens if a member withdraws or does not make his monthly payment.
+
+
+Need to install OpenZeppelin
+  npm install @openzeppelin/contracts

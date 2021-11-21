@@ -1,7 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.4.22 <0.9.0;
+pragma solidity 0.8.0;
 
-contract BurialStokvelAccount {
+import "@openzeppelin/contracts/security/Pausable.sol";
+
+/// @title A smart contract for a South African Burial Stokvel
+/// @author Jurgen Schulte
+/// @notice The contract allows for multiple owners and members After members pay a contribution they are able to submit requests for payment which need to be approved by owners.
+/// @dev Deletion and non approval of request will be implemented in later version
+contract BurialStokvelAccount is Pausable {
     address[] public owners;
     address[] public members;
     uint256 public required;
@@ -17,7 +23,6 @@ contract BurialStokvelAccount {
 
     mapping(uint256 => mapping(address => bool)) public confirmations;
 
-    // <enum State: Executed, Pending, Cancelled>
     enum State {
         Executed,
         Pending,
@@ -44,10 +49,44 @@ contract BurialStokvelAccount {
     event Deposit(address indexed sender, uint256 value);
 
     /// @dev Fallback function allows to deposit ether.
-    function() external payable {
+    fallback() external payable {
         if (msg.value > 0) {
             emit Deposit(msg.sender, msg.value);
+            balance++;
         }
+    }
+
+    /// @dev Receive function allows to deposit ether.
+    receive() external payable {
+        if (msg.value > 0) {
+            emit Deposit(msg.sender, msg.value);
+            balance++;
+        }
+    }
+
+    // NOT a valid modifier
+    modifier validRequirement(uint256 _ownerCount, uint256 _required) {
+        if (_required > _ownerCount || _required == 0 || _ownerCount == 0)
+            revert();
+        _;
+    }
+
+    modifier onlyOwners(address _address) {
+        require(isOwner[msg.sender]);
+        _;
+    }
+
+    modifier onlyMembers(address _address) {
+        require(isMember[msg.sender]);
+        _;
+    }
+
+    function pause() public onlyOwners(msg.sender) {
+        _pause();
+    }
+
+    function unpause() public onlyOwners(msg.sender) {
+        _unpause();
     }
 
     /// @dev Contract constructor sets initial owners of the stokvel account and required number of confirmations.
@@ -58,7 +97,7 @@ contract BurialStokvelAccount {
         address[] memory _owners,
         uint256 _required,
         uint256 _contribution
-    ) public validRequirement(_owners.length, _required) {
+    ) validRequirement(_owners.length, _required) {
         require(_contribution > 0);
         require(_owners.length >= _required);
         for (uint256 i = 0; i < _owners.length; i++) {
@@ -69,24 +108,9 @@ contract BurialStokvelAccount {
         contribution = _contribution;
     }
 
-    modifier validRequirement(uint256 _ownerCount, uint256 _required) {
-        if (_required > _ownerCount || _required == 0 || _ownerCount == 0)
-            revert();
-        _;
-    }
-
-    modifier validContribution(uint256 _contribution) {
-        if (_contribution >= contribution) revert();
-        _;
-    }
-
-    function enroll()
-        public
-        payable
-        validContribution(msg.value)
-        returns (bool)
-    {
+    function enroll() public payable returns (bool) {
         require(isMember[msg.sender] == false);
+        require(msg.value >= contribution);
         isMember[msg.sender] = true;
         members.push(msg.sender);
         emit LogEnrolled(msg.sender);
@@ -110,7 +134,7 @@ contract BurialStokvelAccount {
     /// @dev Adds a new transaction to the transaction mapping, if transaction does not exist yet.
     /// @param _destination Transaction target address.
     /// @param _value Transaction ether value.
-    /// @return Returns transaction ID.
+    /// @return transactionId Returns transaction ID.
     function addTransaction(
         address _destination,
         uint256 _value,
@@ -147,16 +171,22 @@ contract BurialStokvelAccount {
 
     /// @dev Returns the confirmation status of a transaction.
     /// @param _transactionId Transaction ID.
-    /// @return Confirmation status.
-    function isConfirmed(uint256 _transactionId) public view returns (bool) {
+    /// @return confirmed Confirmation status.
+    function isConfirmed(uint256 _transactionId)
+        public
+        view
+        returns (bool confirmed)
+    {
         uint256 count = 0;
+        confirmed = false;
         for (uint256 i = 0; i < owners.length; i++) {
             if (confirmations[_transactionId][owners[i]]) count += 1;
-            if (count == required) return true;
+            if (count == required) confirmed = true;
         }
+        return confirmed;
     }
 
-    function withdraw(uint256 _transactionId) public {
+    function withdraw(uint256 _transactionId) public whenNotPaused {
         require(transactions[_transactionId].destination == msg.sender);
         executeTransaction(_transactionId);
     }
@@ -172,8 +202,7 @@ contract BurialStokvelAccount {
             Transaction storage t = transactions[_transactionId]; // using the "storage" keyword makes "t" a pointer to storage
             t.state = State.Executed;
             balance = balance - transactions[_transactionId].value;
-            (bool success, ) = t.destination.call.value(t.value)("");
-
+            (bool success, ) = t.destination.call{value: msg.value}("");
             if (success) emit Execution(_transactionId);
             else {
                 emit ExecutionFailure(_transactionId);
