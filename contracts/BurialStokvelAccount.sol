@@ -35,13 +35,13 @@ contract BurialStokvelAccount is Pausable {
     }
 
     /// @notice Emitted when a request is submitted
-    /// @param transactionId transaction id
+    /// @param transactionId Transaction ID
     event Submission(uint256 indexed transactionId);
 
     /// @notice Emitted when a submitted request is confirmed
-    /// @param sender sender address
-    /// @param transactionId transaction id
-    /// @param approved a boolean indication if the confirmed transaction is approved
+    /// @param sender Sender address
+    /// @param transactionId Transaction id
+    /// @param approved A boolean indication if the confirmed transaction is approved
     event Confirmation(
         address indexed sender,
         uint256 indexed transactionId,
@@ -49,20 +49,20 @@ contract BurialStokvelAccount is Pausable {
     );
 
     /// @notice Emitted when a transfer of funds is executed
-    /// @param transactionId transaction id
+    /// @param transactionId Transaction ID
     event Execution(uint256 indexed transactionId);
 
     /// @notice Emitted when a transfer of funds fails
-    /// @param transactionId transaction id
+    /// @param transactionId Transaction ID
     event ExecutionFailure(uint256 indexed transactionId);
 
     /// @notice Emitted when a address is enrolled as a member
-    /// @param accountAddress account of member
+    /// @param accountAddress Account of member
     event LogEnrolled(address indexed accountAddress);
 
     /// @notice Emitted when a member deposits his contribution
-    /// @param sender sender address
-    /// @param value value of contribution
+    /// @param sender Sender address
+    /// @param value Value of contribution
     event Deposit(address indexed sender, uint256 value);
 
     /// @dev Fallback function allows to deposit ether.
@@ -88,25 +88,32 @@ contract BurialStokvelAccount is Pausable {
         _;
     }
 
-    modifier onlyOwners(address _address) {
-        require(isOwner[_address], "Only owners allowed");
+    modifier onlyOwners() {
+        require(isOwner[msg.sender], "Only owners allowed");
         _;
     }
 
-    modifier onlyMembers(address _address) {
-        require(isMember[_address], "Only members allowed");
+    modifier onlyMembers() {
+        require(isMember[msg.sender], "Only members allowed");
         _;
     }
 
-    function unpause() public onlyOwners(msg.sender) {
+    /// @notice Unpause the contract by owners only.
+    /// @dev This function controls the unpause/pause modifier which is used to prevent withdrawals in case an attack on the contract.
+    function unpause() public onlyOwners {
         _unpause();
     }
 
-    function pause() public {
+    /// @notice Pause the contract by owners only.
+    /// @dev This function controls the unpause/pause modifier which is used to prevent withdrawals in case an attack on the contract.
+    function pause() public onlyOwners {
         _pause();
     }
 
-    /// @dev Contract constructor sets initial owners of the stokvel account and required number of confirmations.
+    /// @notice Contract constructor sets initial owners of the stokvel
+    // account and required number of confirmations.
+    /// @dev Contract constructor sets initial owners of the stokvel account
+    /// and required number of confirmations.
     /// @param _owners List of initial owners.
     /// @param _required Number of required confirmations.
     /// @param _contribution Required minimum contribution.
@@ -125,6 +132,9 @@ contract BurialStokvelAccount is Pausable {
         contribution = _contribution;
     }
 
+    /// @notice Enrolls the address as a member
+    /// @dev Checks that the address is not already a member
+    /// @return bool Returns a boolean confirming member has been added.
     function enroll() public payable returns (bool) {
         require(isMember[msg.sender] == false);
         require(msg.value >= contribution);
@@ -136,10 +146,14 @@ contract BurialStokvelAccount is Pausable {
         return isMember[msg.sender];
     }
 
-    /// @dev Allows a member to submit a transaction request.
-    /// @param _value Amount requested.
+    /// @notice Allows member to submit a payment request
+    /// @dev The value of the contribution is checked aaginst the minimum contribution
+    /// stipulated during contract creation
+    /// @param _value Value of contribution in Wei
+    /// @param _name Name of request
     function submitRequest(uint256 _value, string memory _name)
         public
+        onlyMembers
         returns (uint256)
     {
         require(isMember[msg.sender]);
@@ -150,7 +164,8 @@ contract BurialStokvelAccount is Pausable {
 
     /// @dev Adds a new transaction to the transaction mapping, if transaction does not exist yet.
     /// @param _destination Transaction target address.
-    /// @param _value Transaction ether value.
+    /// @param _value Transaction wei value.
+    /// @param _name Name of submitted request.
     /// @return transactionId Returns transaction ID.
     function addTransaction(
         address _destination,
@@ -171,7 +186,7 @@ contract BurialStokvelAccount is Pausable {
 
     /// @dev Allows an owner to confirm a transaction.
     /// @param _transactionId Transaction ID.
-    function confirmTransaction(uint256 _transactionId) public {
+    function confirmTransaction(uint256 _transactionId) public onlyOwners {
         require(isOwner[msg.sender]);
         require(transactions[_transactionId].destination != address(0));
         require(confirmations[_transactionId][msg.sender] == false);
@@ -186,7 +201,7 @@ contract BurialStokvelAccount is Pausable {
         emit Confirmation(msg.sender, _transactionId, approved);
     }
 
-    /// @dev Returns the confirmation status of a transaction.
+    /// @notice Returns the confirmation status of a transaction.
     /// @param _transactionId Transaction ID.
     /// @return confirmed Confirmation status.
     function isConfirmed(uint256 _transactionId)
@@ -203,11 +218,15 @@ contract BurialStokvelAccount is Pausable {
         return confirmed;
     }
 
+    /// @notice Withdraws the reqiested amount by the member.
+    /// @dev The sender address is checked to ensure it matches that of the initial requestor
+    /// @param _transactionId Transaction ID.
     function withdraw(uint256 _transactionId) public whenNotPaused {
         require(transactions[_transactionId].destination == msg.sender);
         executeTransaction(_transactionId);
     }
 
+    /// @notice Executes the submitted request.
     /// @dev Transaction is executed if enough confirmations have been
     /// received and the balance is sufficient.
     /// @param _transactionId Transaction ID.
@@ -230,12 +249,15 @@ contract BurialStokvelAccount is Pausable {
         }
     }
 
+    /// @notice Returns all transaction IDs.
+    /// @return memory All transaction IDs.
     function getAllTransactionIDs() public view returns (uint256[] memory) {
         // Only three pending transactions allowed
         return transactionIDs;
     }
 
-    //
+    /// @notice Returns the details of a transaction.
+    /// @param _transactionId The transaction ID.
     function fetchTransaction(uint256 _transactionId)
         public
         view
@@ -262,24 +284,34 @@ contract BurialStokvelAccount is Pausable {
         return (name, value, destination, state);
     }
 
+    /// @notice Get all owners.
+    /// @return memory All owner addresses.
     function getOwners() public view returns (address[] memory) {
         return owners;
     }
 
+    /// @notice Get all members.
+    /// @return memory All member addresses.
+    function getMembers() public view returns (address[] memory) {
+        return members;
+    }
+
+    /// @notice Get minimum contribution required.
+    /// @return uint256 Minimum contribution.
     function getMinimumContribution() public view returns (uint256) {
         return contribution;
     }
 
+    /// @notice Get number of required approvals.
+    /// @return uint256 Number of required approvals.
     function getNumberofRequiredApprovals() public view returns (uint256) {
         return required;
     }
 
+    /// @notice Get balance of contract.
+    /// @return uint256 Balance of contract.
     function getBalance() public view returns (uint256) {
         return balance;
-    }
-
-    function getMembers() public view returns (address[] memory) {
-        return members;
     }
 
     /// @notice Allows approver to cancel submitted transaction
