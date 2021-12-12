@@ -272,7 +272,7 @@ class App extends Component {
         <br />
         <div>
           <div>
-            Minimum contribution in Wei is {this.state.contibution}
+            Contribute a minimum of {this.state.contibution} Wei to become a member
           </div>
           <div>
             <input id="ss-contribution-input-box" type="number" placeholder="Contribution in Wei" />
@@ -282,17 +282,26 @@ class App extends Component {
         <br />
         <br />
         <div>
+          Submit a request for Wei as a member for burial costs.
+        </div>
+        <div>
           <input id="ss-request-input-box" type="number" placeholder="Requested Wei" />
           <button onClick={this.submitRequest} id="ss-request-input-button">Submit</button>
         </div>
         <br />
         <br />
         <div>
+          Approve a request as approver using the transaction ID.
+        </div>
+        <div>
           <input id="ss-approve-input-box" type="number" placeholder="Transaction ID" />
           <button onClick={this.approveRequest} id="ss-approve-input-button">Approve</button>
         </div>
         <br />
         <br />
+        <div>
+          Initiate the transfer of funds as the initiator of a request using the transaction ID.
+        </div>
         <div>
           <input id="ss-withdraw-input-box" type="number" placeholder="Transaction ID" />
           <button onClick={this.withdraw} id="ss-withdraw-input-button">Withdraw</button>
