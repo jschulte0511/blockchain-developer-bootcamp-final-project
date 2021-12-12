@@ -81,13 +81,6 @@ contract BurialStokvelAccount is Pausable {
         }
     }
 
-    // NOT a valid modifier
-    modifier validRequirement(uint256 _ownerCount, uint256 _required) {
-        if (_required > _ownerCount || _required == 0 || _ownerCount == 0)
-            revert();
-        _;
-    }
-
     modifier onlyOwners() {
         require(isOwner[msg.sender], "Only owners allowed");
         _;
@@ -121,8 +114,8 @@ contract BurialStokvelAccount is Pausable {
         address[] memory _owners,
         uint256 _required,
         uint256 _contribution
-    ) validRequirement(_owners.length, _required) {
-        require(_contribution > 0);
+    ) {
+        require(_contribution > 0 && _required > 0);
         require(_owners.length >= _required);
         for (uint256 i = 0; i < _owners.length; i++) {
             isOwner[_owners[i]] = true;
