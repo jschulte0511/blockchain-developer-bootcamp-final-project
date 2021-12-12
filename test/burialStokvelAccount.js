@@ -38,6 +38,17 @@ contract("BurialStokvelAccount", accounts => {
 
       assert.equal(required, 2, "The value 2 for owners was not stored.");
     });
+    it("...checking pause permission.", async () => {
+
+      // Get contibution value
+      let paused = await burialStokvelAccountInstance.pause({ from: accounts[1] });
+      let result = await burialStokvelAccountInstance.paused();
+      console.log("Paused is: ", result);
+      paused = await burialStokvelAccountInstance.unpause({ from: accounts[1] });
+      result = await burialStokvelAccountInstance.paused();
+      console.log("Paused is: ", result);
+      //assert.equal(required, 2, "The value 2 for owners was not stored.");
+    });
   });
 
   describe("Enrolling in stokvel", async () => {

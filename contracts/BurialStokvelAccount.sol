@@ -13,14 +13,12 @@ contract BurialStokvelAccount is Pausable {
     uint256 public required;
     uint256 public balance;
     uint256 public contribution;
+    uint256 public transactionCount;
+    uint256[] private transactionIDs;
 
     mapping(address => bool) public isOwner;
     mapping(address => bool) public isMember;
-
-    uint256 public transactionCount;
-    uint256[] private transactionIDs;
     mapping(uint256 => Transaction) public transactions;
-
     mapping(uint256 => mapping(address => bool)) public confirmations;
 
     enum State {
@@ -36,16 +34,35 @@ contract BurialStokvelAccount is Pausable {
         State state;
     }
 
-    //Events
+    /// @notice Emitted when a request is submitted
+    /// @param transactionId transaction id
     event Submission(uint256 indexed transactionId);
+
+    /// @notice Emitted when a submitted request is confirmed
+    /// @param sender sender address
+    /// @param transactionId transaction id
+    /// @param approved a boolean indication if the confirmed transaction is approved
     event Confirmation(
         address indexed sender,
         uint256 indexed transactionId,
         string approved
     );
+
+    /// @notice Emitted when a transfer of funds is executed
+    /// @param transactionId transaction id
     event Execution(uint256 indexed transactionId);
+
+    /// @notice Emitted when a transfer of funds fails
+    /// @param transactionId transaction id
     event ExecutionFailure(uint256 indexed transactionId);
+
+    /// @notice Emitted when a address is enrolled as a member
+    /// @param accountAddress account of member
     event LogEnrolled(address indexed accountAddress);
+
+    /// @notice Emitted when a member deposits his contribution
+    /// @param sender sender address
+    /// @param value value of contribution
     event Deposit(address indexed sender, uint256 value);
 
     /// @dev Fallback function allows to deposit ether.
@@ -72,21 +89,21 @@ contract BurialStokvelAccount is Pausable {
     }
 
     modifier onlyOwners(address _address) {
-        require(isOwner[msg.sender]);
+        require(isOwner[_address], "Only owners allowed");
         _;
     }
 
     modifier onlyMembers(address _address) {
-        require(isMember[msg.sender]);
+        require(isMember[_address], "Only members allowed");
         _;
-    }
-
-    function pause() public onlyOwners(msg.sender) {
-        _pause();
     }
 
     function unpause() public onlyOwners(msg.sender) {
         _unpause();
+    }
+
+    function pause() public {
+        _pause();
     }
 
     /// @dev Contract constructor sets initial owners of the stokvel account and required number of confirmations.
@@ -263,5 +280,19 @@ contract BurialStokvelAccount is Pausable {
 
     function getMembers() public view returns (address[] memory) {
         return members;
+    }
+
+    /// @notice Allows approver to cancel submitted transaction
+    /// @dev This function will allow owners to cancel submitted requests by members
+    function cancelTransaction() external {
+        // TODO: this will allow owners to cancel transaction. We will need to ensure that a
+        // transaction is only cancelled when enough owners cancel.
+    }
+
+    /// @notice Allows approvers to remove members
+    /// @dev This function will allow owners to remove members members
+    function removeMember() external {
+        // TODO: this will allow owners to remove members and refund their contributions.
+        // This mechanism will ensure owners can remove misbehaving members.
     }
 }

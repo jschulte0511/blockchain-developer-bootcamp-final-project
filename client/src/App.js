@@ -5,7 +5,7 @@ import getWeb3 from "./getWeb3";
 import "./App.css";
 
 class App extends Component {
-  state = { web3: null, accounts: null, contract: null, owners: null, members: null, balance: 0, transactions: null, accountBalance: 0, contibution: 0, requiredApprovals: 0 };
+  state = { web3: null, accounts: null, contract: null, owners: null, members: null, balance: 0, transactions: null, accountBalance: 0, contibution: 0, requiredApprovals: 0, paused: "" };
 
   componentDidMount = async () => {
     try {
@@ -60,8 +60,11 @@ class App extends Component {
     const accBalance = await web3.eth.getBalance(accounts[0]);
     this.setState({ accountBalance: accBalance });
 
+    const status = await contract.methods.paused().call();
+    this.setState({ paused: status.toString() });
+
     // DEBUG
-    console.log("Owner one is ...", this.state.owners[0]);
+    console.log("Status is ...", status);
 
     if (members != null) {
       console.log("Member one is ...", this.state.members[0]);
@@ -155,6 +158,30 @@ class App extends Component {
     this.reloadState();
   }
 
+  pause = async () => {
+
+    const { accounts, contract } = this.state;
+    try {
+      // Unause
+      await contract.methods.pause().send({ from: accounts[0] });
+      this.reloadState();
+    } catch (error) {
+      alert("Not allowed to unpause");
+    }
+  }
+
+  unpause = async () => {
+
+    const { accounts, contract } = this.state;
+    try {
+      // Unause
+      await contract.methods.unpause().send({ from: accounts[0] });
+      this.reloadState();
+    } catch (error) {
+      alert("Not allowed to unpause");
+    }
+  }
+
   render() {
     if (!this.state.web3) {
       return <div>Loading Web3, accounts, and contract...</div>;
@@ -184,7 +211,6 @@ class App extends Component {
     let transactionsList = null;
     const transactions = this.state.transactions;
     if (transactions != null) {
-      console.log("Length: ", transactions.length);
       transactionsLoaded = true;
       transactionsList = transactions.map(function (anObjectMapped, index) {
         return <tr key={index}><td>{index}</td><td>{anObjectMapped.name}</td><td>{anObjectMapped.destination}</td><td>{anObjectMapped.value}</td><td>{anObjectMapped.state}</td></tr>;
@@ -199,6 +225,22 @@ class App extends Component {
           <div>Please reload page when changing account</div>
           <div>Address: {this.state.accounts[0]}</div>
           <div>Balance in Wei: {this.state.accountBalance}</div>
+        </div>
+        <br />
+        <br />
+        <div style={{ "textAlign": "left", "border": "1px solid black", "width": "40%" }}>
+          <br />
+          <div> For Owners only, pausing prevents withdrawing of funds !!</div>
+          <div> Paused is currently {this.state.paused}</div>
+          <br />
+          <div>
+            <button onClick={this.pause} id="ss-pause-input-button">Pause</button>
+          </div>
+          <br />
+          <div>
+            <button onClick={this.unpause} id="ss-unpause-input-button">Unpause</button>
+          </div>
+          <br />
         </div>
         <br />
         <br />
