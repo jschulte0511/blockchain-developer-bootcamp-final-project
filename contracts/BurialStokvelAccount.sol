@@ -2,14 +2,19 @@
 pragma solidity 0.8.0;
 
 import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
 /// @title A smart contract for a South African Burial Stokvel
 /// @author Jurgen Schulte
 /// @notice The contract allows for multiple owners and members After members pay a contribution they are able to submit requests for payment which need to be approved by owners.
 /// @dev Deletion and non approval of request will be implemented in later version
-contract BurialStokvelAccount is Pausable {
+contract BurialStokvelAccount is Pausable, AccessControl {
     address[] public owners;
     address[] public members;
+
+    bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
+    bytes32 public constant MEMBER_ROLE = keccak256("MEMBER_ROLE");
+
     uint256 public required;
     uint256 public balance;
     uint256 public contribution;
@@ -81,25 +86,20 @@ contract BurialStokvelAccount is Pausable {
         }
     }
 
-    modifier onlyOwners() {
-        require(isOwner[msg.sender], "Only owners allowed");
-        _;
-    }
-
-    modifier onlyMembers() {
-        require(isMember[msg.sender], "Only members allowed");
+    modifier notMember(address _address) {
+        require(hasRole(MEMBER_ROLE, _address), "Applicant is already member");
         _;
     }
 
     /// @notice Unpause the contract by owners only.
     /// @dev This function controls the unpause/pause modifier which is used to prevent withdrawals in case an attack on the contract.
-    function unpause() public onlyOwners {
+    function unpause() public onlyRole(OWNER_ROLE) {
         _unpause();
     }
 
     /// @notice Pause the contract by owners only.
     /// @dev This function controls the unpause/pause modifier which is used to prevent withdrawals in case an attack on the contract.
-    function pause() public onlyOwners {
+    function pause() public onlyRole(OWNER_ROLE) {
         _pause();
     }
 
@@ -118,7 +118,7 @@ contract BurialStokvelAccount is Pausable {
         require(_contribution > 0 && _required > 0);
         require(_owners.length >= _required);
         for (uint256 i = 0; i < _owners.length; i++) {
-            isOwner[_owners[i]] = true;
+            _setupRole(OWNER_ROLE, _owners[i]);
         }
         owners = _owners;
         required = _required;
@@ -127,16 +127,13 @@ contract BurialStokvelAccount is Pausable {
 
     /// @notice Enrolls the address as a member
     /// @dev Checks that the address is not already a member
-    /// @return bool Returns a boolean confirming member has been added.
-    function enroll() public payable returns (bool) {
-        require(isMember[msg.sender] == false);
+    function enroll() public payable {
+        //require(hasRole(msg.sender) == false);
         require(msg.value >= contribution);
-        isMember[msg.sender] = true;
-        members.push(msg.sender);
+        _setupRole(MEMBER_ROLE, msg.sender);
         emit LogEnrolled(msg.sender);
         balance += msg.value;
         emit Deposit(msg.sender, msg.value);
-        return isMember[msg.sender];
     }
 
     /// @notice Allows member to submit a payment request
@@ -146,10 +143,9 @@ contract BurialStokvelAccount is Pausable {
     /// @param _name Name of request
     function submitRequest(uint256 _value, string memory _name)
         public
-        onlyMembers
+        onlyRole(MEMBER_ROLE)
         returns (uint256)
     {
-        require(isMember[msg.sender]);
         require(_value <= balance);
         uint256 transactionId = addTransaction(msg.sender, _value, _name);
         return transactionId;
@@ -179,8 +175,11 @@ contract BurialStokvelAccount is Pausable {
 
     /// @dev Allows an owner to confirm a transaction.
     /// @param _transactionId Transaction ID.
-    function confirmTransaction(uint256 _transactionId) public onlyOwners {
-        require(isOwner[msg.sender]);
+    function confirmTransaction(uint256 _transactionId)
+        public
+        onlyRole(OWNER_ROLE)
+    {
+        //require(isOwner[msg.sender]);
         require(transactions[_transactionId].destination != address(0));
         require(confirmations[_transactionId][msg.sender] == false);
 

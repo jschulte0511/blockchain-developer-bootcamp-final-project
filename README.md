@@ -12,6 +12,31 @@ For this project, I will provide a platform that allows the creation of a smart 
 
 Further use cases will cover what happens if a member withdraws or does not make his monthly payment.
 
+How to run this project locally:
+
+Prerequisites
+
+Node.js >= v14
+Truffle and Ganache
+
+
+Frontend
+
+cd client
+npm start run
+Open http://localhost:3000
 
 Need to install OpenZeppelin
   npm install @openzeppelin/contracts
+
+Directory structure
+
+client: Project's React frontend.
+contracts: Smart contracts that are deployed in the Ropsten testnet.
+migrations: Migration files for deploying contracts in contracts directory.
+test: Tests for smart contracts.
+node_modules/@oppenzeppelin/contracts: Smart contracts from OppenZeppelin
+
+Screencast link
+
+Public Ethereum wallet for certification
