@@ -35,13 +35,14 @@ contract("BurialStokvelAccount", accounts => {
 
     it("...checking pause permission.", async () => {
 
-      let paused = await burialStokvelAccountInstance.pause({ from: accounts[1] });
+      await burialStokvelAccountInstance.pause({ from: accounts[1] });
       let result = await burialStokvelAccountInstance.paused();
-      console.log("Paused is: ", result);
-      paused = await burialStokvelAccountInstance.unpause({ from: accounts[1] });
+      assert.equal(result, true, "The contract should be paused");
+
+      await burialStokvelAccountInstance.unpause({ from: accounts[1] });
       result = await burialStokvelAccountInstance.paused();
-      console.log("Paused is: ", result);
-      //assert.equal(required, 2, "The value 2 for owners was not stored.");
+      assert.equal(result, false, "The contract should not be paused");
+
     });
   });
 

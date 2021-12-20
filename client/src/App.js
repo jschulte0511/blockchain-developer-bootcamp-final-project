@@ -171,7 +171,6 @@ class App extends Component {
 
     const { accounts, contract } = this.state;
     try {
-      // Pause
       await contract.methods.pause().send({ from: accounts[0] });
       this.reloadState();
     } catch (error) {
@@ -183,7 +182,6 @@ class App extends Component {
 
     const { accounts, contract } = this.state;
     try {
-      // Unause
       await contract.methods.unpause().send({ from: accounts[0] });
       this.reloadState();
     } catch (error) {
