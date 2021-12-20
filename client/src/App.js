@@ -14,8 +14,6 @@ class App extends Component {
 
       // Use web3 to get the user's accounts.
       const accounts = await web3.eth.getAccounts();
-      console.log("Number of accounts: " + accounts.length);
-      console.log("Acounts address: " + accounts[0]);
 
       // Get the contract instance.
       const networkId = await web3.eth.net.getId();
@@ -63,15 +61,6 @@ class App extends Component {
     const status = await contract.methods.paused().call();
     this.setState({ paused: status.toString() });
 
-    // DEBUG
-    console.log("Status is ...", status);
-
-    if (members != null) {
-      console.log("Member one is ...", this.state.members[0]);
-    }
-    console.log("Balance is ...", this.state.balance);
-    // DEBUG
-
     this.loadTransactions();
   };
 
@@ -92,23 +81,25 @@ class App extends Component {
     }
 
     this.setState({ transactions: transactions });
-    //if (err) console.error('An error occured', err);
-
-    // DEBUG
-    console.log('Loaded transactions: ', transactions.length);
 
   }
-
 
   enroll = async () => {
 
     const { accounts, contract } = this.state;
 
     const ssInputValue = document.getElementById('ss-contribution-input-box').value;
-    console.log('Contribution for enrollment (min 2): ', ssInputValue);
 
     // Enroll new member
-    await contract.methods.enroll().send({ from: accounts[0], value: ssInputValue });
+    try {
+      await contract.methods.enroll().send({ from: accounts[0], value: ssInputValue });
+    } catch (error) {
+      // Catch any errors for any of the above operations.
+      alert(
+        `Failed to enroll address. Check console for details.`,
+      );
+    }
+
     const members = await contract.methods.getMembers().call();
     this.setState({ members: members });
 
@@ -121,10 +112,16 @@ class App extends Component {
     const { accounts, contract } = this.state;
 
     const ssInputValue = document.getElementById('ss-request-input-box').value;
-    console.log('Requested amount: ', ssInputValue);
 
-    // Submit Request
-    await contract.methods.submitRequest(ssInputValue, "Name").send({ from: accounts[0] });
+    try {
+      // Submit Request
+      await contract.methods.submitRequest(ssInputValue, "Name").send({ from: accounts[0] });
+    } catch (error) {
+      // Catch any errors for any of the above operations.
+      alert(
+        `Check if address is a member or requested amount exceeds balance. Check console for details.`,
+      );
+    }
 
     // Reloading
     this.reloadState();
@@ -135,10 +132,16 @@ class App extends Component {
     const { accounts, contract } = this.state;
 
     const ssInputValue = document.getElementById('ss-approve-input-box').value;
-    console.log('Approved ID: ', ssInputValue);
 
-    // Submit Approval
-    await contract.methods.confirmTransaction(ssInputValue).send({ from: accounts[0] });
+    try {
+      // Submit Approval
+      await contract.methods.confirmTransaction(ssInputValue).send({ from: accounts[0] });
+    } catch (error) {
+      // Catch any errors for any of the above operations.
+      alert(
+        `Address needs to be an owner to approve. Check console for details.`,
+      );
+    }
 
     // Reloading 
     this.reloadState();
@@ -149,10 +152,16 @@ class App extends Component {
     const { accounts, contract } = this.state;
 
     const ssInputValue = document.getElementById('ss-withdraw-input-box').value;
-    console.log('ID fior withdrawal: ', ssInputValue);
 
-    // Withdraw
-    await contract.methods.withdraw(ssInputValue).send({ from: accounts[0] });
+    try {
+      // Withdraw
+      await contract.methods.withdraw(ssInputValue).send({ from: accounts[0] });
+    } catch (error) {
+      // Catch any errors for any of the above operations.
+      alert(
+        `Only initiator of request can withdraw amount if transaction is approved. Check console for details.`,
+      );
+    }
 
     // Reloading 
     this.reloadState();
@@ -162,11 +171,11 @@ class App extends Component {
 
     const { accounts, contract } = this.state;
     try {
-      // Unause
+      // Pause
       await contract.methods.pause().send({ from: accounts[0] });
       this.reloadState();
     } catch (error) {
-      alert("Not allowed to unpause");
+      alert("Not allowed to pause");
     }
   }
 
@@ -221,7 +230,7 @@ class App extends Component {
 
     return (
       <div className="App">
-        <div style={{ "textAlign": "left", "border": "1px solid black", "width": "40%" }}>
+        <div style={{ "textAlign": "left", "border": "1px solid black", "width": "100%" }}>
           <div>Please reload page when changing account</div>
           <div>Address: {this.state.accounts[0]}</div>
           <div>Balance in Wei: {this.state.accountBalance}</div>

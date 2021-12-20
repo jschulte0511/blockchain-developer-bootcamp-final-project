@@ -11,18 +11,17 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 contract BurialStokvelAccount is Pausable, AccessControl {
     address[] public owners;
     address[] public members;
-
     bytes32 public constant OWNER_ROLE = keccak256("OWNER_ROLE");
     bytes32 public constant MEMBER_ROLE = keccak256("MEMBER_ROLE");
 
     uint256 public required;
     uint256 public balance;
     uint256 public contribution;
+
+    // Used to assign transactionID's by incrementing the value
     uint256 public transactionCount;
     uint256[] private transactionIDs;
 
-    mapping(address => bool) public isOwner;
-    mapping(address => bool) public isMember;
     mapping(uint256 => Transaction) public transactions;
     mapping(uint256 => mapping(address => bool)) public confirmations;
 
@@ -70,6 +69,7 @@ contract BurialStokvelAccount is Pausable, AccessControl {
     /// @param value Value of contribution
     event Deposit(address indexed sender, uint256 value);
 
+    /// @notice Fallback function
     /// @dev Fallback function allows to deposit ether.
     fallback() external payable {
         if (msg.value > 0) {
@@ -78,6 +78,7 @@ contract BurialStokvelAccount is Pausable, AccessControl {
         }
     }
 
+    /// @notice Receive function
     /// @dev Receive function allows to deposit ether.
     receive() external payable {
         if (msg.value > 0) {
@@ -87,7 +88,10 @@ contract BurialStokvelAccount is Pausable, AccessControl {
     }
 
     modifier notMember(address _address) {
-        require(hasRole(MEMBER_ROLE, _address), "Applicant is already member");
+        require(
+            !hasRole(MEMBER_ROLE, _address),
+            "Applicant is already a member"
+        );
         _;
     }
 
@@ -115,8 +119,15 @@ contract BurialStokvelAccount is Pausable, AccessControl {
         uint256 _required,
         uint256 _contribution
     ) {
-        require(_contribution > 0 && _required > 0);
-        require(_owners.length >= _required);
+        require(_contribution > 0, "Contribution has to be larger than 0");
+        require(
+            _required > 0,
+            "Number of required approvers has to be larger than 0"
+        );
+        require(
+            _owners.length >= _required,
+            "Number of required approvers has to be larger or equal to number of owners"
+        );
         for (uint256 i = 0; i < _owners.length; i++) {
             _setupRole(OWNER_ROLE, _owners[i]);
         }
@@ -127,10 +138,13 @@ contract BurialStokvelAccount is Pausable, AccessControl {
 
     /// @notice Enrolls the address as a member
     /// @dev Checks that the address is not already a member
-    function enroll() public payable {
-        //require(hasRole(msg.sender) == false);
-        require(msg.value >= contribution);
+    function enroll() public payable notMember(msg.sender) {
+        require(
+            msg.value >= contribution,
+            "Amount sent has to be larger than minimum contribution amount"
+        );
         _setupRole(MEMBER_ROLE, msg.sender);
+        members.push(msg.sender);
         emit LogEnrolled(msg.sender);
         balance += msg.value;
         emit Deposit(msg.sender, msg.value);
@@ -146,7 +160,10 @@ contract BurialStokvelAccount is Pausable, AccessControl {
         onlyRole(MEMBER_ROLE)
         returns (uint256)
     {
-        require(_value <= balance);
+        require(
+            _value <= balance,
+            "Amount requested has to be smaller or equal to balance in contract"
+        );
         uint256 transactionId = addTransaction(msg.sender, _value, _name);
         return transactionId;
     }
@@ -180,9 +197,14 @@ contract BurialStokvelAccount is Pausable, AccessControl {
         onlyRole(OWNER_ROLE)
     {
         //require(isOwner[msg.sender]);
-        require(transactions[_transactionId].destination != address(0));
-        require(confirmations[_transactionId][msg.sender] == false);
-
+        require(
+            transactions[_transactionId].destination != address(0),
+            "Desination address cannot be 0"
+        );
+        require(
+            confirmations[_transactionId][msg.sender] == false,
+            "Sender address has to be equal to address of adress that submitted initial request"
+        );
         confirmations[_transactionId][msg.sender] = true;
         string memory approved = "false";
         if (isConfirmed(_transactionId)) {
@@ -214,7 +236,10 @@ contract BurialStokvelAccount is Pausable, AccessControl {
     /// @dev The sender address is checked to ensure it matches that of the initial requestor
     /// @param _transactionId Transaction ID.
     function withdraw(uint256 _transactionId) public whenNotPaused {
-        require(transactions[_transactionId].destination == msg.sender);
+        require(
+            transactions[_transactionId].destination == msg.sender,
+            "Requester of withdrawal needs to be the same as the initiator of initial request"
+        );
         executeTransaction(_transactionId);
     }
 
@@ -223,9 +248,15 @@ contract BurialStokvelAccount is Pausable, AccessControl {
     /// received and the balance is sufficient.
     /// @param _transactionId Transaction ID.
     function executeTransaction(uint256 _transactionId) internal {
-        require(transactions[_transactionId].state == State.Approved);
+        require(
+            transactions[_transactionId].state == State.Approved,
+            "Transaction needs to be in Approved state"
+        );
         // Check balance
-        require(transactions[_transactionId].value <= balance);
+        require(
+            transactions[_transactionId].value <= balance,
+            "Balance needs to be equal or greater than requested amount"
+        );
         if (isConfirmed(_transactionId)) {
             Transaction storage t = transactions[_transactionId]; // using the "storage" keyword makes "t" a pointer to storage
             t.state = State.Executed;
@@ -244,7 +275,6 @@ contract BurialStokvelAccount is Pausable, AccessControl {
     /// @notice Returns all transaction IDs.
     /// @return memory All transaction IDs.
     function getAllTransactionIDs() public view returns (uint256[] memory) {
-        // Only three pending transactions allowed
         return transactionIDs;
     }
 
