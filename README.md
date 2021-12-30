@@ -21,6 +21,8 @@ Further use cases will cover what happens if a member withdraws or does not make
 ### Prerequisites
 
 Node.js >= v14
+$npm install truffle-hdwallet-provider
+$npm install dotenv
 Truffle and Ganache
 Install OpenZeppelin using `npm install @openzeppelin/contracts`
 

@@ -89,8 +89,16 @@ contract BurialStokvelAccount is Pausable, AccessControl {
 
     modifier notMember(address _address) {
         require(
-            !hasRole(MEMBER_ROLE, _address),
+            !hasRole(MEMBER_ROLE, msg.sender),
             "Applicant is already a member"
+        );
+        _;
+    }
+
+    modifier notOwner(address _address) {
+        require(
+            !hasRole(OWNER_ROLE, msg.sender),
+            "Applicant is already a approver"
         );
         _;
     }
@@ -111,34 +119,38 @@ contract BurialStokvelAccount is Pausable, AccessControl {
     // account and required number of confirmations.
     /// @dev Contract constructor sets initial owners of the stokvel account
     /// and required number of confirmations.
-    /// @param _owners List of initial owners.
     /// @param _required Number of required confirmations.
     /// @param _contribution Required minimum contribution.
-    constructor(
-        address[] memory _owners,
-        uint256 _required,
-        uint256 _contribution
-    ) {
+    constructor(uint256 _required, uint256 _contribution) {
         require(_contribution > 0, "Contribution has to be larger than 0");
         require(
             _required > 0,
             "Number of required approvers has to be larger than 0"
         );
-        require(
-            _owners.length >= _required,
-            "Number of required approvers has to be larger or equal to number of owners"
-        );
-        for (uint256 i = 0; i < _owners.length; i++) {
-            _setupRole(OWNER_ROLE, _owners[i]);
-        }
-        owners = _owners;
+
         required = _required;
         contribution = _contribution;
     }
 
     /// @notice Enrolls the address as a member
     /// @dev Checks that the address is not already a member
-    function enroll() public payable notMember(msg.sender) {
+    function applyAsApprover()
+        public
+        notMember(msg.sender)
+        notOwner(msg.sender)
+    {
+        _setupRole(OWNER_ROLE, msg.sender);
+        owners.push(msg.sender);
+    }
+
+    /// @notice Enrolls the address as a member
+    /// @dev Checks that the address is not already a member
+    function enroll()
+        public
+        payable
+        notMember(msg.sender)
+        notOwner(msg.sender)
+    {
         require(
             msg.value >= contribution,
             "Amount sent has to be larger than minimum contribution amount"
@@ -158,6 +170,7 @@ contract BurialStokvelAccount is Pausable, AccessControl {
     function submitRequest(uint256 _value, string memory _name)
         public
         onlyRole(MEMBER_ROLE)
+        notOwner(msg.sender)
         returns (uint256)
     {
         require(

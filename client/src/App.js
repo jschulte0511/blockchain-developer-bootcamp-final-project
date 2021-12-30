@@ -167,6 +167,22 @@ class App extends Component {
     this.reloadState();
   }
 
+  applyAsApprover = async () => {
+
+    const { accounts, contract } = this.state;
+
+    try {
+      await contract.methods.applyAsApprover().send({ from: accounts[0] });
+    } catch (error) {
+      // Catch any errors for any of the above operations.
+      alert(`Not allowed to apply as Approver. Check console for details.`,
+      );
+    }
+
+    // Reloading 
+    this.reloadState();
+  }
+
   pause = async () => {
 
     const { accounts, contract } = this.state;
@@ -200,7 +216,7 @@ class App extends Component {
     if (owners != null) {
       ownersLoaded = true;
       ownersList = owners.map(function (address, index) {
-        return <li key={index}>Owner {index}: {address}</li>;
+        return <li key={index}>Approver {index}: {address}</li>;
       })
     }
 
@@ -237,7 +253,7 @@ class App extends Component {
         <br />
         <div style={{ "textAlign": "left", "border": "1px solid black", "width": "40%" }}>
           <br />
-          <div> For Owners only, pausing prevents withdrawing of funds !!</div>
+          <div> For Approvers only, pausing prevents withdrawing of funds !!</div>
           <div> Paused is currently {this.state.paused}</div>
           <br />
           <div>
@@ -256,8 +272,17 @@ class App extends Component {
         <h2>Balance is {this.state.balance}</h2>
         <br />
         <br />
-        <h3>Number of unique approvals required from owners is {this.state.requiredApprovals}</h3>
+        <h3>Number of unique approvals required from approvers is {this.state.requiredApprovals}</h3>
         {ownersLoaded ? ownersList : null}
+        <br />
+        <div>
+          <div>
+            Note: Approvers cannot become a member !
+          </div>
+          <div>
+            <button onClick={this.applyAsApprover} id="ss-contr-input-button">Apply as Approver</button>
+          </div>
+        </div>
         <br />
         <h3>Members</h3>
         {membersLoaded ? membersList : null}
@@ -279,7 +304,7 @@ class App extends Component {
         <br />
         <div>
           <div>
-            Contribute a minimum of {this.state.contibution} Wei to become a member
+            Contribute a minimum of {this.state.contibution} Wei to become a member - not available to approvers.
           </div>
           <div>
             <input id="ss-contribution-input-box" type="number" placeholder="Contribution in Wei" />

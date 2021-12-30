@@ -14,10 +14,12 @@ contract("BurialStokvelAccount", accounts => {
   describe("Setting up the stokvel", async () => {
     it("...the owners should be account 1 and 2.", async () => {
 
+      await burialStokvelAccountInstance.applyAsApprover({ from: accounts[0] });
+      await burialStokvelAccountInstance.applyAsApprover({ from: accounts[1] });
       const owner = await burialStokvelAccountInstance.getOwners();
 
       assert.equal(owner[0], accounts[0], "The value for account1 was not stored.");
-      assert.equal(owner[1], accounts[1], "The value account2 was not stored.");
+      assert.equal(owner[1], accounts[1], "The value for account2 was not stored.");
 
     });
 
@@ -30,7 +32,7 @@ contract("BurialStokvelAccount", accounts => {
     it("...the number of required confirmations should be 2.", async () => {
 
       const required = await burialStokvelAccountInstance.required.call();
-      assert.equal(required, 2, "The value 2 for owners was not stored.");
+      assert.equal(required, 2, "The value 2 for required confirmations.");
     });
 
     it("...checking pause permission.", async () => {
