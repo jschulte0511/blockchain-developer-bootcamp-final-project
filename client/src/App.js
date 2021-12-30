@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import SimpleStorageContract from "./contracts/BurialStokvelAccount.json";
+import Contract from "./contracts/BurialStokvelAccount.json";
 import getWeb3 from "./getWeb3";
 
 import "./App.css";
@@ -17,11 +17,13 @@ class App extends Component {
 
       // Get the contract instance.
       const networkId = await web3.eth.net.getId();
-      const deployedNetwork = SimpleStorageContract.networks[networkId];
+      const deployedNetwork = Contract.networks[networkId];
       const instance = new web3.eth.Contract(
-        SimpleStorageContract.abi,
+        Contract.abi,
         deployedNetwork && deployedNetwork.address,
       );
+
+      instance.options.address = "[0x6E5Aa64824CAaDEaF2Dc1978a53fd52Aa8499C49]";
 
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.

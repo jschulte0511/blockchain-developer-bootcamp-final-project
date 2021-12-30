@@ -26,6 +26,7 @@ dotenv.config();
 
 
 const mnemonic = process.env.MNEMONIC;
+const tokenKey = process.env.INFURA_PROJECT_ID;
 
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
@@ -38,13 +39,14 @@ module.exports = {
 
 
     rinkeby: {
-      // truffle migrate --network rinkeby --reset --compile-all
-      provider: () => new HDWalletProvider(mnemonic,
-        `https://rinkeby.infura.io/v3/${process.env.INFURA_PROJECT_ID}`),
+      host: "localhost",
+      provider: function () {
+        return new HDWalletProvider(mnemonic, "https://rinkeby.infura.io/v3/" + tokenKey);
+      },
       network_id: 4
-      , gas: 6700000
+      , gas: 4000000
       , gasPrice: 10000000000
-    },
+    }
   },
 
 

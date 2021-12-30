@@ -34982,6 +34982,12 @@
     "version": "0.8.0+commit.c7dfd78e.Emscripten.clang"
   },
   "networks": {
+    "4": {
+      "events": {},
+      "links": {},
+      "address": "0x6E5Aa64824CAaDEaF2Dc1978a53fd52Aa8499C49",
+      "transactionHash": "0x60f4f194aca98aae70926e80ad855015775a514c363a06701252b42e95dad10d"
+    },
     "5777": {
       "events": {
         "0xbbd347b0b26e5ecc8cd8676faf574878fdbc8fc0d744f3a8d42f72ce24eb2251": {
@@ -35188,7 +35194,7 @@
     }
   },
   "schemaVersion": "3.4.3",
-  "updatedAt": "2021-12-30T14:17:36.543Z",
+  "updatedAt": "2021-12-30T16:24:30.798Z",
   "networkType": "ethereum",
   "devdoc": {
     "author": "Jurgen Schulte",
