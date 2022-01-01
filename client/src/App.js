@@ -141,7 +141,7 @@ class App extends Component {
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
-        `Address needs to be an owner to approve. Check console for details.`,
+        `Address needs to be an approver to approve. Check console for details.`,
       );
     }
 
