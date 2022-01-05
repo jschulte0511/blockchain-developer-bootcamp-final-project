@@ -248,7 +248,8 @@ class App extends Component {
     return (
       <div className="App">
         <div style={{ "textAlign": "left", "border": "1px solid black", "width": "100%" }}>
-          <div>Please reload page when changing account</div>
+          <div>Please reload page when changing account.</div>
+          <br />
           <div>Address: {this.state.accounts[0]}</div>
           <div>Balance in Wei: {this.state.accountBalance}</div>
         </div>
@@ -256,7 +257,8 @@ class App extends Component {
         <br />
         <div style={{ "textAlign": "left", "border": "1px solid black", "width": "40%" }}>
           <br />
-          <div> For Approvers only, pausing prevents withdrawing of funds !!</div>
+          <div> For Approvers only, pausing prevents withdrawing of funds by members!!</div>
+          <br />
           <div> Paused is currently {this.state.paused}</div>
           <br />
           <div>

@@ -18,21 +18,21 @@ contract("BurialStokvelAccount", accounts => {
       await burialStokvelAccountInstance.applyAsApprover({ from: accounts[1] });
       const owner = await burialStokvelAccountInstance.getOwners();
 
-      assert.equal(owner[0], accounts[0], "The value for account1 was not stored.");
-      assert.equal(owner[1], accounts[1], "The value for account2 was not stored.");
+      assert.equal(owner[0], accounts[0], "Account1 was not added as approver.");
+      assert.equal(owner[1], accounts[1], "Account2 was not added as approver.");
 
     });
 
     it("...the contibution should be 2.", async () => {
 
       const contribution = await burialStokvelAccountInstance.contribution.call();
-      assert.equal(contribution, 2, "The value 2 for contribution was not stored.");
+      assert.equal(contribution, 2, "The value 2 for contribution was not set.");
     });
 
     it("...the number of required confirmations should be 2.", async () => {
 
       const required = await burialStokvelAccountInstance.required.call();
-      assert.equal(required, 2, "The value 2 for required confirmations.");
+      assert.equal(required, 2, "The value 2 was not set for required confirmations.");
     });
 
     it("...checking pause permission.", async () => {
@@ -91,7 +91,7 @@ contract("BurialStokvelAccount", accounts => {
   });
 
   describe("Confirming pending transaction in stokvel", async () => {
-    it("...using account 0", async () => {
+    it("...using account 1", async () => {
 
       const result = await burialStokvelAccountInstance.confirmTransaction(0, { from: accounts[0] });
       const expectedEventResult = { address: accounts[0], transactionId: 0, approved: "false" };
@@ -106,11 +106,12 @@ contract("BurialStokvelAccount", accounts => {
 
       const { name, value, destination } = await burialStokvelAccountInstance.fetchTransaction(logID);
       assert.equal(name, "Account 2", "The transaction name should be Account 2");
+      assert.equal(value, "1", "The value of the transaction should be 1");
 
     });
 
 
-    it("...using account 1", async () => {
+    it("...using account 2", async () => {
 
       let result = await burialStokvelAccountInstance.confirmTransaction(0, { from: accounts[1] });
 
