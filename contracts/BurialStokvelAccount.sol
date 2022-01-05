@@ -351,14 +351,14 @@ contract BurialStokvelAccount is Pausable, AccessControl {
 
     /// @notice Allows approver to cancel submitted transaction
     /// @dev This function will allow owners to cancel submitted requests by members
-    function cancelTransaction() external {
-        // TODO: this will allow owners to cancel transaction. We will need to ensure that a
+    function cancelTransaction() public onlyRole(OWNER_ROLE) {
+        // TODO: this will allow owners to cancel a transaction. We will need to ensure that a
         // transaction is only cancelled when enough owners cancel.
     }
 
     /// @notice Allows approvers to remove members
     /// @dev This function will allow owners to remove members members
-    function removeMember() external {
+    function removeMember() public onlyRole(OWNER_ROLE) {
         // TODO: this will allow owners to remove members and refund their contributions.
         // This mechanism will ensure owners can remove misbehaving members.
     }

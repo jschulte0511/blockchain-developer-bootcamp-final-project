@@ -66,7 +66,7 @@ contract("BurialStokvelAccount", accounts => {
   });
 
   describe("Submitting request to stokvel", async () => {
-    it("...first transaction ID should be zero", async () => {
+    it("...first transaction ID should be 0", async () => {
 
       const result = await burialStokvelAccountInstance.submitRequest(1, "Account 2", { from: accounts[2] });
 
@@ -127,7 +127,7 @@ contract("BurialStokvelAccount", accounts => {
     });
   });
 
-  describe("Withdraw funds using confirmed transaction", async () => {
+  describe("Withdrawing funds using approved transaction ID", async () => {
     it("...balance of stokvel should have decreased by 1", async () => {
 
       const initialBalanceOfStokvel = await burialStokvelAccountInstance.balance.call();

@@ -2,7 +2,7 @@
 
 ## Access Control Design Patterns
 
-BurialStokvelAccount.sol contract inherits the OpenZeppelin AccessControl contract @openzeppelin/contracts/access/AccessControl.sol to createthe owner and member roles. Only owners are allowed to pause and unpause the contract thereby making it impossible for funds to be withdrawn. By restricting the submitRequest function using onlyRole(MEMBER_ROLE) only members that have been enrolled successfully can request funds from the BurialStokvel.
+BurialStokvelAccount.sol contract inherits the OpenZeppelin AccessControl contract @openzeppelin/contracts/access/AccessControl.sol to create the owner and member roles. Only owners are allowed to pause and unpause the contract thereby making it impossible for funds to be withdrawn. By restricting the submitRequest function using onlyRole(MEMBER_ROLE) only members that have been enrolled successfully can request funds from the BurialStokvel.
 
 ## Inheritance and Interfaces
 
