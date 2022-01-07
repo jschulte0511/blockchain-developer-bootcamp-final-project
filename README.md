@@ -64,5 +64,7 @@ In future approvers will have the ability to cancel requests or remove members.
 
 ## Screencast link
 
+https://www.loom.com/share/f3b2677791a844f793cad19fd7a7f25c
+
 ## Public Ethereum wallet for certification
 0x2817F199655E575FAA408eb1BCd27A6656003008
