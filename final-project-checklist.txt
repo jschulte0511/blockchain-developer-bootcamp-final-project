@@ -4,7 +4,7 @@ Please answer the following questions. Does your project:
 
 1. Follow this naming format: https://github.com/YOUR_GITHUB_USERNAME_HERE/blockchain-developer-bootcamp-final-project? YES
 
-2. Contain a README.md file which describes the project, describes the directory structure, and where the frontend project can be accessed? And has your public Ethereum address if you'd like your certification as an NFT (optional)? 
+2. Contain a README.md file which describes the project, describes the directory structure, and where the frontend project can be accessed? And has your public Ethereum address if you'd like your certification as an NFT (optional)? YES
 
 3. Contain smart contract(s) which:
 --Are commented to the specs described by NatSpec Solidity documentation
@@ -17,7 +17,7 @@ Please answer the following questions. Does your project:
 
 5. Have at least five smart contract unit tests that pass? YES
 
-6. Contain a `deployed_address.txt` file which contains the testnet address and network where your contract(s) have been deployed? 
+6. Contain a `deployed_address.txt` file which contains the testnet address and network where your contract(s) have been deployed?  
 
 7. Have a frontend interface built with a framework like React or HTML/CSS/JS that:
 --Detects the presence of MetaMask
@@ -27,10 +27,12 @@ Please answer the following questions. Does your project:
 --Updates the frontend if the transaction is successful or not? YES
 
 8. Hosted on Github Pages, Heroku, Netlify, Fleek, or some other free frontend service that gives users a public interface to your decentralized application? (That address should be in your README.md document) 
+https://blockchain-developer-bootcamp-final-project-jschulte0511.vercel.app/
 
 9. Have clear instructions for: 
 1) Installing dependencies for your project 
 2) Accessing or - if your project needs a server (not required) - running your project
 3) Running your smart contract unit tests and which port a local testnet should be running on. 
+Yes
 
 10. A screencast of you walking through your project? 

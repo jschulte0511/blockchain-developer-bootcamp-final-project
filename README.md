@@ -37,19 +37,27 @@ In future approvers will have the ability to cancel requests or remove members.
 
 - Node.js >= v14
 - Truffle
+- `git clone https://github.com/jschulte0511/blockchain-developer-bootcamp-final-project.git`
+- `cd blockchain-developer-bootcamp-final-project`
 - `git fetch --all --tags`
 - `git checkout tags/v1.0 -b cert`
 
 ### Frontend
 
-- `cd client`
+- `cd ../blockchain-developer-bootcamp-final-project/client`
 - `npm start run`
 - Open http://localhost:3000 in browser
+- Make sure your Metamask localhost network is in port 8545.
+
+## Testing contracts
+
+- `cd blockchain-developer-bootcamp-final-project`
+- `truffle test`
 
 ## Directory structure
 
 - client: Project's React frontend.
-- contracts: Smart contracts that are deployed in the Ropsten testnet.
+- contracts: Smart contracts that are deployed in the Rinkeby testnet.
 - migrations: Migration files for deploying contracts in contracts directory.
 - test: Tests for smart contracts.
 - node_modules/@oppenzeppelin/contracts: Smart contracts from OppenZeppelin
@@ -57,3 +65,4 @@ In future approvers will have the ability to cancel requests or remove members.
 ## Screencast link
 
 ## Public Ethereum wallet for certification
+0x2817F199655E575FAA408eb1BCd27A6656003008
