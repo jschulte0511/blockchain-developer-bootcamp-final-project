@@ -9,7 +9,7 @@ In South Afrcia a Stokvel is a type of credit union in which a group of people e
 
 For this project, I will provide a platform that allows the creation of a smart contract that regulates a stokvel used specifically for funeral expenses which is a common type of stokvel in South Africa that allows it's members to bury their loved ones with dignity. During the creation of the stokvel smart contract the user will have the ability to: 
 
-1. Determine the minimum number of approvers needed to confirm a payout request by a member
+1. Determine the minimum number of approvers needed to confirm a payout request by a member.
 2. Minimum contribution required by a member enrolling.
 
 ### Project workflow
@@ -44,10 +44,12 @@ In future approvers will have the ability to cancel requests or remove members.
 
 ### Frontend
 
+- In order to test locally line 27 in App.js needs to be commented out as it refers to the contract address in Rinkeby.
 - `cd ../blockchain-developer-bootcamp-final-project/client`
 - `npm start run`
-- Open http://localhost:3000 in browser
+- Open http://localhost:3000 in browser.
 - Make sure your Metamask localhost network is port 8545.
+- If you get TXRejectedError when sending a transaction, reset your Metamask account from Advanced settings.
 
 ## Testing contracts
 

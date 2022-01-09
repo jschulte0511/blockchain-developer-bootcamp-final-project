@@ -274,7 +274,9 @@ contract BurialStokvelAccount is Pausable, AccessControl {
             Transaction storage t = transactions[_transactionId]; // using the "storage" keyword makes "t" a pointer to storage
             t.state = State.Executed;
             balance = balance - transactions[_transactionId].value;
-            (bool success, ) = t.destination.call{value: msg.value}("");
+            (bool success, ) = t.destination.call{
+                value: transactions[_transactionId].value
+            }("");
             if (success) emit Execution(_transactionId);
             else {
                 emit ExecutionFailure(_transactionId);
