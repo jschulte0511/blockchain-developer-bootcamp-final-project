@@ -40,7 +40,7 @@ In future approvers will have the ability to cancel requests or remove members.
 - `git clone https://github.com/jschulte0511/blockchain-developer-bootcamp-final-project.git`
 - `cd blockchain-developer-bootcamp-final-project`
 - `git fetch --all --tags`
-- `git checkout tags/v1.0 -b cert`
+- `git checkout tags/v1.1 -b cert`
 
 ### Testing contracts
 
