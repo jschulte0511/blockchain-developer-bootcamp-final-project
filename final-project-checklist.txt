@@ -17,7 +17,7 @@ Please answer the following questions. Does your project:
 
 5. Have at least five smart contract unit tests that pass? YES
 
-6. Contain a `deployed_address.txt` file which contains the testnet address and network where your contract(s) have been deployed?  
+6. Contain a `deployed_address.txt` file which contains the testnet address and network where your contract(s) have been deployed?  YES
 
 7. Have a frontend interface built with a framework like React or HTML/CSS/JS that:
 --Detects the presence of MetaMask
@@ -33,6 +33,6 @@ https://blockchain-developer-bootcamp-final-project-jschulte0511.vercel.app/
 1) Installing dependencies for your project 
 2) Accessing or - if your project needs a server (not required) - running your project
 3) Running your smart contract unit tests and which port a local testnet should be running on. 
-Yes
+YES
 
 10. A screencast of you walking through your project? 
