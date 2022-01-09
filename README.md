@@ -52,8 +52,7 @@ In future approvers will have the ability to cancel requests or remove members.
 
 - Using an ethereum client like Ganache, run a local testnet in port 7545 as specified in truffle.config.
 - In IDE terminal run `cd blockchain-developer-bootcamp-final-project` and `truffle migrate --network development`.
-- In order to test locally line 27 in App.js needs to be commented out as it refers to the contract address in Rinkeby.
-  
+- In order to test locally, line 27 in App.js needs to be commented out as it refers to the contract address in Rinkeby.
 - In a new terminal run `cd ../blockchain-developer-bootcamp-final-project/client` and `npm start run`. 
 - If `npm start run` fails ensure `npm install` was run previously.
 - Open http://localhost:3000 in browser.
