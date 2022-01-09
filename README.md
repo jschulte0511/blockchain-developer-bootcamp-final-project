@@ -35,26 +35,31 @@ In future approvers will have the ability to cancel requests or remove members.
 
 ### Prerequisites
 
-- Node.js >= v14
+- Node.js >= v14 with npm
 - Truffle
 - `git clone https://github.com/jschulte0511/blockchain-developer-bootcamp-final-project.git`
 - `cd blockchain-developer-bootcamp-final-project`
 - `git fetch --all --tags`
 - `git checkout tags/v1.0 -b cert`
 
-### Frontend
-
-- In order to test locally line 27 in App.js needs to be commented out as it refers to the contract address in Rinkeby.
-- `cd ../blockchain-developer-bootcamp-final-project/client`
-- `npm start run`
-- Open http://localhost:3000 in browser.
-- Make sure your Metamask localhost network is port 8545.
-- If you get TXRejectedError when sending a transaction, reset your Metamask account from Advanced settings.
-
 ## Testing contracts
 
 - `cd blockchain-developer-bootcamp-final-project`
+- `npm install`
 - `truffle test`
+  
+### Using Frontend App
+
+- Using an ethereum client like Ganache, run a local testnet in port 7545
+- In IDE terminal `cd blockchain-developer-bootcamp-final-project`
+- `truffle migrate --network development` - network development with port 7545 is specified in truffle.config.
+- In order to test locally line 27 in App.js needs to be commented out as it refers to the contract address in Rinkeby.
+  
+- In new terminal `cd ../blockchain-developer-bootcamp-final-project/client`
+- and `npm start run` - ensure `npm install` was run previously.
+- Open http://localhost:3000 in browser.
+- Make sure your Metamask localhost network is port 7545.
+- If you get TXRejectedError when sending a transaction, reset your Metamask account from Advanced settings.
 
 ## Directory structure
 

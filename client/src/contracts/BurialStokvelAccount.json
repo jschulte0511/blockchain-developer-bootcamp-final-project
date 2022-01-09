@@ -35349,12 +35349,12 @@
         }
       },
       "links": {},
-      "address": "0x6E5Aa64824CAaDEaF2Dc1978a53fd52Aa8499C49",
-      "transactionHash": "0x633f7ecc6c88c3106ab2c7254a0b3118becbe395ed02708dbbc95e45c31eb633"
+      "address": "0x198F6dE9FC2D2479a4A7E890F1bd4F7A48E23057",
+      "transactionHash": "0x5225a81ecda91d24378a9acb510fe8cf279e6d3d616d539c4636712713adecb4"
     }
   },
   "schemaVersion": "3.4.3",
-  "updatedAt": "2022-01-09T13:25:15.181Z",
+  "updatedAt": "2022-01-09T14:58:18.119Z",
   "networkType": "ethereum",
   "devdoc": {
     "author": "Jurgen Schulte",
